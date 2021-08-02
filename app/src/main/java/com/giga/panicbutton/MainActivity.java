@@ -17,6 +17,7 @@ import android.widget.Toast;
 import android.Manifest;
 import android.content.pm.PackageManager;
 
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity
@@ -47,22 +48,10 @@ public class MainActivity extends AppCompatActivity
                         grantResults[2] == PackageManager.PERMISSION_GRANTED)
                 {
                     Log.d(tag,"permissions checked, proceed to get and send location...");
-                    //obtener y enviar ubicación
-                    LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-                    LocationListener locationListener = new LocationListener()
-                    {
-                        @Override
-                        public void onLocationChanged(@NonNull Location location)
-                        {
-                            //Log.d(tag,"entré a onLocationChagned...");
-                            //SendSMS("+522291521851", location);
-                        }
-                    };
-
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0, locationListener);
                     //get Location
-                    Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                    SendSMS("+522291521851",location);
+                    Location location = getLastKnownLocation();
+                    if (location != null)
+                        SendSMS("2291521851",location);
 
                 }
                 else
@@ -72,6 +61,27 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
         }
+    }
+
+    // Buscar ubicación con distintos proveedores
+    private Location getLastKnownLocation()
+    {
+        LocationManager locationManager = (LocationManager)getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers)
+        {
+            Location l = locationManager.getLastKnownLocation(provider);
+            if (l== null)
+            {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy())
+            {
+                bestLocation = l;
+            }
+        }
+        return bestLocation;
     }
 
     public void sendingLocation(View view)
@@ -84,20 +94,10 @@ public class MainActivity extends AppCompatActivity
                     &&(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED))
             {
                 Log.d(tag,"permissions checked, proceed to get and send location...");
-                LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                LocationListener locationListener = new LocationListener()
-                {
-                    @Override
-                    public void onLocationChanged(@NonNull Location location)
-                    {
-                        //Log.d(tag,"entré a onLocationChagned...");
-                        //SendSMS("+522291521851", location);
-                    }
-                };
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0, locationListener);
                 //get Location
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                SendSMS("+522291521851", location);
+                Location location = getLastKnownLocation();
+                if (location != null)
+                    SendSMS("2291521851", location);
             }
             else
             {
@@ -118,9 +118,11 @@ public class MainActivity extends AppCompatActivity
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(numero, null, ubicación, null, null);
             Log.d(tag, "SMS send message" + " number: " + numero + " texto: " + location.toString());
+            Toast.makeText(getBaseContext(), "Mensaje enviado", Toast.LENGTH_LONG).show();
         }catch(Exception ex){
+            Toast.makeText(getBaseContext(), "No se pudo enviar el mensaje", Toast.LENGTH_LONG).show();
             Log.d(tag,"SMS fail => " + ex.getMessage());
         }
-        Toast.makeText(getBaseContext(), "Message has been sent", Toast.LENGTH_LONG).show();
+
     }
 }
