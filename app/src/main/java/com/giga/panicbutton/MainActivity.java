@@ -114,9 +114,11 @@ public class MainActivity extends AppCompatActivity
     {
         try
         {
-            String ubicación = "Latitud: " + location.getLatitude() + "\nLongitud: " + location.getLongitude() + "\nAltitud: " + location.getAltitude();
+            String latitud = String.valueOf(location.getLatitude());
+            String longitud = String.valueOf(location.getLongitude());
+            String url = "https://www.google.com/maps/@" + latitud.substring(1,8) + "," + longitud.substring(1,8) + ",15z";
             SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(numero, null, ubicación, null, null);
+            smsManager.sendTextMessage(numero, null, url, null, null);
             Log.d(tag, "SMS send message" + " number: " + numero + " texto: " + location.toString());
             Toast.makeText(getBaseContext(), "Mensaje enviado", Toast.LENGTH_LONG).show();
         }catch(Exception ex){
