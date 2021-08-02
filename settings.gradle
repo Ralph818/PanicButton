@@ -1,0 +1,2 @@
+rootProject.name = "PanicButton"
+include ':app'
