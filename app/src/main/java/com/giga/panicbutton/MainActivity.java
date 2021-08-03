@@ -23,7 +23,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
 {
     static final String tag = "log-principal";
-    private String numero = "";
+    private String numero = "2291521851";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -51,8 +51,9 @@ public class MainActivity extends AppCompatActivity
                     //get Location
                     Location location = getLastKnownLocation();
                     if (location != null)
-                        SendSMS("2291521851",location);
-
+                        SendSMS(numero,location);
+                    else
+                        Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();
                 }
                 else
                 {
@@ -97,7 +98,9 @@ public class MainActivity extends AppCompatActivity
                 //get Location
                 Location location = getLastKnownLocation();
                 if (location != null)
-                    SendSMS("2291521851", location);
+                    SendSMS(numero, location);
+                else
+                    Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();
             }
             else
             {
@@ -116,7 +119,7 @@ public class MainActivity extends AppCompatActivity
         {
             String latitud = String.valueOf(location.getLatitude());
             String longitud = String.valueOf(location.getLongitude());
-            String url = "https://www.google.com/maps/@" + latitud.substring(1,8) + "," + longitud.substring(1,8) + ",15z";
+            String url = "https://www.google.com/maps/search/?api=1&query=" + latitud.substring(0,9) + "," + longitud.substring(0,10);
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(numero, null, url, null, null);
             Log.d(tag, "SMS send message" + " number: " + numero + " texto: " + location.toString());
