@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -31,12 +32,24 @@ public class MainActivity extends AppCompatActivity {
     double lon;
     double lat;
 
+    private final LocationListener locListener = new LocationListener()
+    {
+        @Override
+        public void onLocationChanged(@NonNull Location location)
+        {
+            lon = location.getLongitude();
+            lat = location.getLatitude();
+            Log.d(tag,"onLocationChanged =>" + lat + "," + lon);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
         //l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -47,11 +60,13 @@ public class MainActivity extends AppCompatActivity {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+            Log.d(tag,"OnCreate: Lacking permissions");
             return;
         }
-
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 10, locListener);
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 12000, 10, locListener);
+        lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 12000, 10, locListener);
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
@@ -68,12 +83,15 @@ public class MainActivity extends AppCompatActivity {
                         grantResults[2] == PackageManager.PERMISSION_GRANTED)
                 {
                     Log.d(tag,"permissions checked, proceed to get and send location...");
+                    Log.d(tag, "lat: " + lat + " lon: " + lon);
+                    SendSMS(numero);
+
                     //get Location
-                    Location location = getLastKnownLocation();
+                    /*Location location = getLastKnownLocation();
                     if (location != null){}
                     //SendSMS(numero,location);
                     else
-                        Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();*/
                 }
                 else
                 {
@@ -85,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Buscar ubicación con distintos proveedores
-    private Location getLastKnownLocation()
+    /*private Location getLastKnownLocation()
     {
         LocationManager locationManager = (LocationManager)getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         List<String> providers = locationManager.getProviders(true);
@@ -107,15 +125,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return bestLocation;
-    }
-
-    private final LocationListener locListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(@NonNull Location location) {
-            lon = location.getLongitude();
-            lat = location.getLatitude();
-        }
-    };
+    }*/
 
     public void sendingLocation(View view)
     {
@@ -130,9 +140,7 @@ public class MainActivity extends AppCompatActivity {
                     this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED))
             {
                 Log.d(tag,"permissions checked, proceed to get and send location...");
-
-                Log.d(tag, "lon: " + lon + " lat: " + lat);
-
+                Log.d(tag, "lat: " + lat + " lon: " + lon);
                 SendSMS(numero);
 
                 /*Location location = getLastKnownLocation();
@@ -176,7 +184,8 @@ public class MainActivity extends AppCompatActivity {
             smsManager.sendTextMessage(numero, null, url, null, null);
             //Log.d(tag, "SMS send message" + " number: " + numero + " texto: " + location.toString());
             Toast.makeText(getBaseContext(), "Mensaje enviado", Toast.LENGTH_LONG).show();
-        }catch(Exception ex){
+        }catch(Exception ex)
+        {
             Toast.makeText(getBaseContext(), "No se pudo enviar el mensaje", Toast.LENGTH_LONG).show();
             Log.d(tag,"SMS fail => " + ex.getMessage());
         }
