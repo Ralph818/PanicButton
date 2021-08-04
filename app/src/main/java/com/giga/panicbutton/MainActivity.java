@@ -2,6 +2,7 @@ package com.giga.panicbutton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.annotation.SuppressLint;
@@ -20,19 +21,38 @@ import android.content.pm.PackageManager;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity
-{
+public class MainActivity extends AppCompatActivity {
     static final String tag = "log-principal";
     private String numero = "2291521851";
 
+    // newest
+    LocationManager lm;
+    Location l;
+    double lon;
+    double lat;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        //l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 10, locListener);
     }
 
-    @SuppressLint("MissingPermission")
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
     {
@@ -50,15 +70,15 @@ public class MainActivity extends AppCompatActivity
                     Log.d(tag,"permissions checked, proceed to get and send location...");
                     //get Location
                     Location location = getLastKnownLocation();
-                    if (location != null)
-                        SendSMS(numero,location);
+                    if (location != null){}
+                    //SendSMS(numero,location);
                     else
                         Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();
                 }
                 else
                 {
                     Toast.makeText(getBaseContext(),"You must enable permissions", Toast.LENGTH_SHORT).show();
-                    //requestPermissions(new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION}, 0 );
+                    requestPermissions(new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION}, 0 );
                 }
                 break;
         }
@@ -72,6 +92,10 @@ public class MainActivity extends AppCompatActivity
         Location bestLocation = null;
         for (String provider : providers)
         {
+            if(ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+
+            }
             Location l = locationManager.getLastKnownLocation(provider);
             if (l== null)
             {
@@ -85,22 +109,50 @@ public class MainActivity extends AppCompatActivity
         return bestLocation;
     }
 
+    private final LocationListener locListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(@NonNull Location location) {
+            lon = location.getLongitude();
+            lat = location.getLatitude();
+        }
+    };
+
     public void sendingLocation(View view)
     {
         Log.d(tag,"Trying to send location, first check for permission...");
         try
         {
-            if ((ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED)
-                    && (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
-                    &&(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED))
+            if ((ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED)
+                    && (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
+                    &&(ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED))
             {
                 Log.d(tag,"permissions checked, proceed to get and send location...");
-                //get Location
-                Location location = getLastKnownLocation();
-                if (location != null)
+
+                Log.d(tag, "lon: " + lon + " lat: " + lat);
+
+                SendSMS(numero);
+
+                /*Location location = getLastKnownLocation();
+
+                if (location != null){
+                    Log.d(tag, "[sendingLocation] lon: " + location.getLongitude() + " lat: " + location.getLatitude());
                     SendSMS(numero, location);
+                }
                 else
-                    Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();*/
+
+                //get Location
+                /*Location location = getLastKnownLocation();
+                if (location != null){
+                    Log.d(tag, "[sendingLocation] lon: " + location.getLongitude() + " lat: " + location.getLatitude());
+                    SendSMS(numero, location);
+                }
+                else
+                    Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();*/
+
             }
             else
             {
@@ -113,16 +165,16 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void SendSMS(String numero, Location location)
+    public void SendSMS(String numero)
     {
         try
         {
-            String latitud = String.valueOf(location.getLatitude());
-            String longitud = String.valueOf(location.getLongitude());
-            String url = "https://www.google.com/maps/search/?api=1&query=" + latitud.substring(0,9) + "," + longitud.substring(0,10);
+            //String latitud = String.valueOf(location.getLatitude());
+            //String longitud = String.valueOf(location.getLongitude());
+            String url = "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon;
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(numero, null, url, null, null);
-            Log.d(tag, "SMS send message" + " number: " + numero + " texto: " + location.toString());
+            //Log.d(tag, "SMS send message" + " number: " + numero + " texto: " + location.toString());
             Toast.makeText(getBaseContext(), "Mensaje enviado", Toast.LENGTH_LONG).show();
         }catch(Exception ex){
             Toast.makeText(getBaseContext(), "No se pudo enviar el mensaje", Toast.LENGTH_LONG).show();
