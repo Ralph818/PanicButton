@@ -11,13 +11,36 @@
        android:layout_height="match_parent"
        android:orientation="vertical">
 
-   <ImageButton
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_centerInParent="true"
-       android:src="@drawable/panic_button"
-       tools:ignore="MissingConstraints"
-       android:onClick="sendingLocation"/>
+      <ImageButton
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/settings_button"
+          android:onClick="settings"/>
+
+      <TextView
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="200dp"
+         android:text="Presione el botón rojo para enviar ubicación"
+         android:textStyle="bold"
+         android:textSize="8pt"
+         android:layout_gravity="center"
+         android:layout_marginLeft="20dp"/>
+
+      <ImageButton
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_centerInParent="true"
+         android:src="@drawable/panic_button"
+         tools:ignore="MissingConstraints"
+         android:onClick="sendingLocation"/>
+
+      <Button
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+         android:layout_marginTop="500dp"
+         android:text="@string/Salir"
+         android:onClick="salir"/>
 
    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

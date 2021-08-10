@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">PanicButton</string>
+    <string name="gps_network_not_enabled">Para el correcto funcionamiento de la aplicación, debe permitir la geolocalización del dispositivo</string>
+    <string name="open_location_settings">Configuración</string>
+    <string name="Cancel">Ahora no</string>
+    <string name="Guardar">Guardar</string>
+    <string name="Salir">Salir</string>
 </resources>

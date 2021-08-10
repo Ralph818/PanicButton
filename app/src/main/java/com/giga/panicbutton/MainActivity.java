@@ -6,12 +6,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
@@ -24,13 +30,17 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     static final String tag = "log-principal";
-    private String numero = "2291521851";
+    static final int requestCode = 1;
 
     // newest
     LocationManager lm;
     Location l;
     double lon;
     double lat;
+
+    // to check location enabled
+    boolean gps_enabled = false;
+    boolean network_enabled = false;
 
     private final LocationListener locListener = new LocationListener()
     {
@@ -43,28 +53,63 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    @SuppressLint("MissingPermission")
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //validate location enabled
+        CheckLocationEnabled();
+    }
+
+    @SuppressLint("MissingPermission")
+    private void CheckLocationEnabled()
+    {
+        // Validate whether the GPS location service is on.
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        try
+        {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch (Exception ex) {}
 
-        //l = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        try
+        {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception ex) {}
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.d(tag,"OnCreate: Lacking permissions");
-            return;
+        if (!gps_enabled && !network_enabled)
+        {
+            try
+            {
+                //notify user
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage(R.string.gps_network_not_enabled)
+                        .setPositiveButton(R.string.open_location_settings, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton(R.string.Cancel, null)
+                        .show();
+            } catch (Exception ex)
+            {
+                Log.d(tag, "Exception => " + ex.getMessage());
+                Toast.makeText(getBaseContext(), "GPS not enabled, please enable and try again", Toast.LENGTH_LONG);
+            }
         }
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 12000, 10, locListener);
-        lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 12000, 10, locListener);
+        if (gps_enabled == true && network_enabled == true)
+        {
+            try {
+                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, locListener);
+                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 10, locListener);
+            } catch (Exception ex) {
+                Log.d(tag, "Error en requestLocationUpdates");
+            }
+        }
     }
 
 
@@ -84,14 +129,7 @@ public class MainActivity extends AppCompatActivity {
                 {
                     Log.d(tag,"permissions checked, proceed to get and send location...");
                     Log.d(tag, "lat: " + lat + " lon: " + lon);
-                    SendSMS(numero);
-
-                    //get Location
-                    /*Location location = getLastKnownLocation();
-                    if (location != null){}
-                    //SendSMS(numero,location);
-                    else
-                        Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();*/
+                    SendSMS();
                 }
                 else
                 {
@@ -102,33 +140,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Buscar ubicación con distintos proveedores
-    /*private Location getLastKnownLocation()
-    {
-        LocationManager locationManager = (LocationManager)getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        List<String> providers = locationManager.getProviders(true);
-        Location bestLocation = null;
-        for (String provider : providers)
-        {
-            if(ContextCompat.checkSelfPermission(
-                    this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-
-            }
-            Location l = locationManager.getLastKnownLocation(provider);
-            if (l== null)
-            {
-                continue;
-            }
-            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy())
-            {
-                bestLocation = l;
-            }
-        }
-        return bestLocation;
-    }*/
-
+    @SuppressLint("MissingPermission")
     public void sendingLocation(View view)
     {
+        CheckLocationEnabled();
         Log.d(tag,"Trying to send location, first check for permission...");
         try
         {
@@ -141,26 +156,7 @@ public class MainActivity extends AppCompatActivity {
             {
                 Log.d(tag,"permissions checked, proceed to get and send location...");
                 Log.d(tag, "lat: " + lat + " lon: " + lon);
-                SendSMS(numero);
-
-                /*Location location = getLastKnownLocation();
-
-                if (location != null){
-                    Log.d(tag, "[sendingLocation] lon: " + location.getLongitude() + " lat: " + location.getLatitude());
-                    SendSMS(numero, location);
-                }
-                else
-                    Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();*/
-
-                //get Location
-                /*Location location = getLastKnownLocation();
-                if (location != null){
-                    Log.d(tag, "[sendingLocation] lon: " + location.getLongitude() + " lat: " + location.getLatitude());
-                    SendSMS(numero, location);
-                }
-                else
-                    Toast.makeText(getBaseContext(), "No location found", Toast.LENGTH_SHORT).show();*/
-
+                SendSMS();
             }
             else
             {
@@ -173,22 +169,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void SendSMS(String numero)
+    public void SendSMS()
     {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String numero = preferences.getString("numeroConfianza", "");
+        Log.d(tag,"Número telefónico => " + numero);
         try
         {
-            //String latitud = String.valueOf(location.getLatitude());
-            //String longitud = String.valueOf(location.getLongitude());
             String url = "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon;
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(numero, null, url, null, null);
-            //Log.d(tag, "SMS send message" + " number: " + numero + " texto: " + location.toString());
             Toast.makeText(getBaseContext(), "Mensaje enviado", Toast.LENGTH_LONG).show();
         }catch(Exception ex)
         {
             Toast.makeText(getBaseContext(), "No se pudo enviar el mensaje", Toast.LENGTH_LONG).show();
             Log.d(tag,"SMS fail => " + ex.getMessage());
         }
+    }
 
+    public void settings(View view)
+    {
+        Intent i = new Intent( this, SettingsActivity.class);
+        startActivityForResult(i,requestCode);
+    }
+
+    public void salir()
+    {
+        finish();
+        System.exit(0);
     }
 }
