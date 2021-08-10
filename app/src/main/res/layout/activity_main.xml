@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+   <ScrollView
+       xmlns:android="http://schemas.android.com/apk/res/android"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent">
 
-   <RelativeLayout
+   <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="match_parent"
        android:orientation="vertical">
@@ -18,29 +16,27 @@
           android:onClick="settings"/>
 
       <TextView
-         android:layout_width="wrap_content"
+         android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginTop="200dp"
+         android:layout_marginTop="80dp"
          android:text="Presione el botón rojo para enviar ubicación"
          android:textStyle="bold"
          android:textSize="8pt"
-         android:layout_gravity="center"
-         android:layout_marginLeft="20dp"/>
+         android:layout_gravity="center"/>
 
       <ImageButton
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
          android:layout_centerInParent="true"
          android:src="@drawable/panic_button"
-         tools:ignore="MissingConstraints"
          android:onClick="sendingLocation"/>
 
       <Button
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-         android:layout_marginTop="500dp"
+         android:layout_marginTop="60dp"
          android:text="@string/Salir"
          android:onClick="salir"/>
 
-   </RelativeLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+   </LinearLayout>
+   </ScrollView>

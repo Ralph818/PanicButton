@@ -193,9 +193,10 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(i,requestCode);
     }
 
-    public void salir()
+    public void salir(View view)
     {
         finish();
         System.exit(0);
     }
+
 }
